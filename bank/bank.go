@@ -1,12 +1,44 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"strconv"
 )
 
-var balance int = 100
+const fileName string = "balance.txt"
+
+func writeBalanceToFile(balance int) {
+	balanceText := fmt.Sprint(balance)
+	os.WriteFile(fileName, []byte(balanceText), 0644)
+}
+
+func readBalanceFromFile() (int, error) {
+	data, err := os.ReadFile(fileName)
+
+	if err != nil {
+		return 0, errors.New("No file was found")
+	}
+
+	balanceText := string(data)
+	balance, err := strconv.ParseInt(balanceText, 10, 64)
+	if err != nil {
+		return 0, errors.New("Invalid balance data in file")
+	}
+	return int(balance), nil
+}
+
+var balance, err = readBalanceFromFile()
 
 func main() {
+
+	if err != nil {
+		fmt.Println("no file was found or invalid data, creating one with 0.")
+		writeBalanceToFile(0)
+		balance = 0 // update global balance after file creation
+	}
+
 	fmt.Println("Welcome. what do you want to do?")
 
 	for {
@@ -20,7 +52,7 @@ func main() {
 		fmt.Scan(&choice)
 
 		if choice == 1 {
-			fmt.Print("Your balance is: ", balance)
+			fmt.Println("Your balance is: ", balance)
 		} else if choice == 2 {
 			var number int
 			fmt.Print("enter amount: ")
@@ -31,7 +63,7 @@ func main() {
 				continue
 			}
 			balance += number
-
+			writeBalanceToFile(balance)
 		} else if choice == 3 {
 			var number int
 			fmt.Print("enter amount: ")
@@ -42,6 +74,7 @@ func main() {
 				continue
 			}
 			balance -= number
+			writeBalanceToFile(balance)
 		} else {
 			fmt.Println("Goodbye. ")
 			break
@@ -53,6 +86,13 @@ func main() {
 // Alternative way with switch
 
 func alternativeWayWithSwithc() {
+
+	if err != nil {
+		fmt.Println("no file was found or invalid data, creating one with 0.")
+		writeBalanceToFile(0)
+		balance = 0 // update global balance after file creation
+	}
+
 	fmt.Println("Welcome. What do you want to do?")
 
 	for {
@@ -79,6 +119,7 @@ func alternativeWayWithSwithc() {
 			}
 
 			balance += depositAmount
+			writeBalanceToFile(balance)
 		case 3:
 			var withdrawalAmount int
 			fmt.Print("Enter amount to withdraw: ")
@@ -95,6 +136,7 @@ func alternativeWayWithSwithc() {
 			}
 
 			balance -= withdrawalAmount
+			writeBalanceToFile(balance)
 		case 4:
 			fmt.Println("Goodbye.")
 			return
